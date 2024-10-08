@@ -56,20 +56,21 @@ pipeline {
         }
 
         stage('Run ZAP Scan') {
-            steps {
-                script {
-                    // Create a directory for ZAP reports and set permissions
-                    sh "mkdir -p ${REPORT_DIR}"
-                    sh "chmod 777 ${REPORT_DIR}"
+    steps {
+        script {
+            // Create a directory for ZAP reports and set permissions
+            sh "mkdir -p ${REPORT_DIR}"
+            sh "chmod 777 ${REPORT_DIR}"
 
-                    // Run ZAP on the same network and target the Flask app container
-                    sh """
-                    docker run --rm --network ${NETWORK_NAME} -v \$(pwd)/${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
-                    zap-baseline.py -t http://my_app:5000 -r /zap/wrk/zap_report.html
-                    """
-                }
-            }
+            // Run ZAP on the same network and target the Flask app container
+            sh """
+            docker run --rm --network ${NETWORK_NAME} -v \$(pwd)/${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
+            zap-baseline.py -t http://my_app:5000 -r /zap/wrk/zap_report.html
+            """
         }
+    }
+}
+
 
         stage('Stop App') {
             steps {
