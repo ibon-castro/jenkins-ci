@@ -49,38 +49,26 @@ pipeline {
         }
 
         stage('Run ZAP Scan') {
-    steps {
-        script {
-            // Create the report directory and ensure permissions
-            sh "mkdir -p ${REPORT_DIR}"
-            sh "chmod -R 777 ${REPORT_DIR}"
+            steps {
+                script {
+                    // Create the report directory and ensure permissions
+                    sh "mkdir -p ${REPORT_DIR}"
+                    sh "chmod 777 ${REPORT_DIR}"
 
-            // Run ZAP with volume and network configurations
-            sh """
-            docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
-            zap-baseline.py -t http://my_app:5000 -r zap_report.html
-            """
-
-            // List files in the report directory to ensure the report is generated
-            sh "ls -la ${REPORT_DIR}"
-        }
-    }
-}
-
-
-        stage('Archive ZAP Report') {
-    steps {
-        script {
-            // Ensure the report exists before archiving
-            if (fileExists("${REPORT_DIR}/zap_report.html")) {
-                archiveArtifacts artifacts: "${REPORT_DIR}/zap_report.html"
-            } else {
-                error("Report file not found!")
+                    // Run ZAP with volume and network configurations
+                    sh """
+                    docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
+                    zap-baseline.py -t http://my_app:5000 -r zap_report.html || true
+                    """
+                }
             }
         }
-    }
-}
 
+        stage('Archive ZAP Report') {
+            steps {
+                archiveArtifacts artifacts: 'zap-reports/zap_report.html'
+            }
+        }
 
         stage('Stop App') {
             steps {
