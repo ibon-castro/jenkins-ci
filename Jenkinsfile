@@ -38,7 +38,10 @@ pipeline {
             steps {
                 script {
                     // Pull and run the Docker image locally
-                    sh "docker run -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh """
+                    docker run -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run --rm ghcr.io/zaproxy/zaproxy:weekly /usr/bin/curl http://localhost:5000
+                    """
                 }
             }
         }
