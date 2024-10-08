@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
+        REPORT_DIR = './zap-reports'
     }
 
     stages {
@@ -27,7 +28,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     }
-                    sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
@@ -47,9 +48,13 @@ pipeline {
         stage('Run ZAP Scan') {
             steps {
                 script {
-                    // Run ZAP to scan the locally deployed Flask app
+                    // Create a directory for ZAP reports
+                    sh "mkdir -p ${REPORT_DIR}"
+
+                    // Run ZAP and mount the report directory
                     sh """
-                    docker run --rm ghcr.io/zaproxy/zaproxy:weekly zap-baseline.py -t http://localhost:5000 -r zap_report.html
+                    docker run --rm -v \$(pwd)/${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
+                    zap-baseline.py -t http://localhost:5000 -r /zap/wrk/zap_report.html
                     """
                 }
             }
@@ -62,6 +67,13 @@ pipeline {
                     sh "docker stop my_app"
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            // Archive the ZAP report as an artifact in Jenkins
+            archiveArtifacts artifacts: "${REPORT_DIR}/zap_report.html", allowEmptyArchive: true
         }
     }
 }
