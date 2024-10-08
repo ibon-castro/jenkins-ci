@@ -40,7 +40,7 @@ pipeline {
                     sh "docker run -d --name my_app -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
 
                     // Wait for the app to be ready
-                    sh "sleep 5"
+                    sh "sleep 10"
                 }
             }
         }
@@ -75,3 +75,6 @@ pipeline {
         always {
             // Archive the ZAP report as an artifact in Jenkins
             archiveArtifacts artifacts: "${REPORT_DIR}/zap_report.html", allowEmptyArchive: true
+        }
+    }
+}
