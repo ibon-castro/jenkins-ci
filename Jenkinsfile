@@ -26,13 +26,25 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                     withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     }
                     sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
                 }
             }
         }
+
+        stage('Deploy Locally') {
+            steps {
+                script {
+                    // Stop and remove any running container with the same name
+                    sh "docker stop my_python_app || true"
+                    sh "docker rm my_python_app || true"
+                    
+                    // Pull and run the Docker image locally
+                    sh "docker run -d --name my_python_app -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
     }
 }
-
