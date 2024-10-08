@@ -4,13 +4,14 @@ pipeline {
     environment {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
+        REPORT_DIR = '/var/lib/jenkins/workspace/pipeline/zap-reports'
         NETWORK_NAME = 'zap-network'
-        REPORT_DIR = './zap-reports'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
+                // Clone the repository using the 'github' credentials
                 git credentialsId: 'github', branch: 'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
             }
         }
@@ -18,6 +19,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
@@ -29,16 +31,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     }
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                }
-            }
-        }
-
-        stage('Create Network') {
-            steps {
-                script {
-                    // Create a custom Docker network
-                    sh "docker network create ${NETWORK_NAME} || true"
+                    sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
                 }
             }
         }
@@ -46,47 +39,48 @@ pipeline {
         stage('Deploy Locally') {
             steps {
                 script {
-                    // Run the app in detached mode on the custom network
-                    sh "docker run -d --name my_app --network ${NETWORK_NAME} -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
-
-                    // Wait for the app to be ready
-                    sh "sleep 5"
+                    // Create a Docker network and deploy the app on that network
+                    sh """
+                    docker network create ${NETWORK_NAME}
+                    docker run -d --name my_app --network ${NETWORK_NAME} -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
                 }
             }
         }
 
         stage('Run ZAP Scan') {
-    steps {
-        script {
-            // Create a directory for ZAP reports and set permissions
-            sh "mkdir -p ${REPORT_DIR}"
-            sh "chmod 777 ${REPORT_DIR}"
+            steps {
+                script {
+                    // Create the report directory and ensure permissions
+                    sh "mkdir -p ${REPORT_DIR}"
+                    sh "chmod 777 ${REPORT_DIR}"
 
-            // Run ZAP on the same network and target the Flask app container
-            sh """
-            docker run --rm --network ${NETWORK_NAME} -v \$(pwd)/${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
-            zap-baseline.py -t http://my_app:5000 -r /zap/wrk/zap_report.html
-            """
+                    // Run ZAP with volume and network configurations
+                    sh """
+                    docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
+                    zap-baseline.py -t http://my_app:5000 -r /zap/wrk/zap_report.html
+                    """
+                }
+            }
         }
-    }
-}
 
+        stage('Archive ZAP Report') {
+            steps {
+                archiveArtifacts artifacts: 'zap-reports/zap_report.html'
+            }
+        }
 
         stage('Stop App') {
             steps {
                 script {
-                    // Stop the running app container
-                    sh "docker stop my_app"
-                    sh "docker network rm ${NETWORK_NAME}"
+                    // Stop and clean up the app container and network
+                    sh """
+                    docker stop my_app
+                    docker rm my_app
+                    docker network rm ${NETWORK_NAME}
+                    """
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            // Archive the ZAP report as an artifact in Jenkins
-            archiveArtifacts artifacts: "${REPORT_DIR}/zap_report.html", allowEmptyArchive: true
         }
     }
 }
