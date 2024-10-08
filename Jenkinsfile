@@ -10,7 +10,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 // Clone the repository using the 'github' credentials
-                git credentialsId: GIT_CREDENTIALS, url: 'https://github.com/ibon-castro/jenkins-ci.git'
+                git credentialsId: GIT_CREDENTIALS, branch:'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
             }
         }
 
