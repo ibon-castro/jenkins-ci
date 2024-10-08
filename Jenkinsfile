@@ -1,16 +1,11 @@
 pipeline {
     agent any
 
-    environment {
-        GIT_CREDENTIALS = credentials('github')  // Use the GitHub credentials
-        DOCKER_CREDENTIALS = credentials('dockerhub')  // Use the Docker Hub credentials
-    }
-
     stages {
         stage('Clone Repository') {
             steps {
                 // Clone the repository using the 'github' credentials
-                git credentialsId: GIT_CREDENTIALS, branch:'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
+                git credentialsId: 'github', branch:'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
             }
         }
 
