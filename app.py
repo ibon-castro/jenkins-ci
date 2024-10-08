@@ -10,6 +10,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database with the app
 db.init_app(app)
 
+@app.route('/')
+def home():
+    return redirect(url_for('register'))  # Redirect to the register page
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -32,4 +36,4 @@ def success():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # Create tables
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)  # Allow access from all IPs
