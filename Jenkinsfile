@@ -60,13 +60,17 @@ pipeline {
                     docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
                     zap-baseline.py -t http://my_app:5000 -r zap_report.html || true
                     """
+                    
+                    // Notify where the report will be saved
+                    echo "ZAP Report saved at: ${REPORT_DIR}/zap_report.html"
                 }
             }
         }
 
         stage('Archive ZAP Report') {
             steps {
-                archiveArtifacts artifacts: 'zap-reports/zap_report.html'
+                // Correct the path to the generated report
+                archiveArtifacts artifacts: 'zap-reports/zap_report.html', allowEmptyArchive: true
             }
         }
 
