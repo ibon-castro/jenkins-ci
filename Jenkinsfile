@@ -9,15 +9,13 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // Clone the repository using the 'github' credentials
-                git credentialsId: 'github', branch:'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
+                git credentialsId: 'github', branch: 'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
@@ -37,11 +35,31 @@ pipeline {
         stage('Deploy Locally') {
             steps {
                 script {
-                    // Pull and run the Docker image locally
+                    // Run the app in detached mode
+                    sh "docker run -d --name my_app -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
+
+                    // Wait for the app to be ready
+                    sh "sleep 10"
+                }
+            }
+        }
+
+        stage('Run ZAP Scan') {
+            steps {
+                script {
+                    // Run ZAP to scan the locally deployed Flask app
                     sh """
-                    docker run -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker run --rm ghcr.io/zaproxy/zaproxy:weekly /usr/bin/curl http://localhost:5000
+                    docker run --rm ghcr.io/zaproxy/zaproxy:weekly zap-baseline.py -t http://localhost:5000 -r zap_report.html
                     """
+                }
+            }
+        }
+
+        stage('Stop App') {
+            steps {
+                script {
+                    // Stop the running app container
+                    sh "docker stop my_app"
                 }
             }
         }
