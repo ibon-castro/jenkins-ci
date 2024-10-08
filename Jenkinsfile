@@ -58,7 +58,7 @@ pipeline {
                     // Run ZAP with volume and network configurations
                     sh """
                     docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
-                    zap-baseline.py -t http://my_app:5000 -r /zap/wrk/zap_report.html
+                    zap-baseline.py -t http://my_app:5000 -r zap_report.html
                     """
                 }
             }
