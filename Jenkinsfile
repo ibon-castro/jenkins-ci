@@ -40,7 +40,7 @@ pipeline {
                     sh "docker run -d --name my_app -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}"
 
                     // Wait for the app to be ready
-                    sh "sleep 10"
+                    sh "sleep 5"
                 }
             }
         }
@@ -48,10 +48,11 @@ pipeline {
         stage('Run ZAP Scan') {
             steps {
                 script {
-                    // Create a directory for ZAP reports
+                    // Create a directory for ZAP reports and set permissions
                     sh "mkdir -p ${REPORT_DIR}"
+                    sh "chmod 777 ${REPORT_DIR}"
 
-                    // Run ZAP and mount the report directory
+                    // Run ZAP and mount the report directory with full permissions
                     sh """
                     docker run --rm -v \$(pwd)/${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
                     zap-baseline.py -t http://localhost:5000 -r /zap/wrk/zap_report.html
@@ -74,6 +75,3 @@ pipeline {
         always {
             // Archive the ZAP report as an artifact in Jenkins
             archiveArtifacts artifacts: "${REPORT_DIR}/zap_report.html", allowEmptyArchive: true
-        }
-    }
-}
