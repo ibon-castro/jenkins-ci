@@ -36,4 +36,4 @@ def success():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # Create tables
-    app.run(host='0.0.0.0', port=5000, debug=True)  # Allow access from all IPs
+    app.run(host='0.0.0.0', port=5000, debug=False)
