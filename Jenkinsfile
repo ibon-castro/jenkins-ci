@@ -16,6 +16,39 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                bash -c "source venv/bin/activate && pip3 install -r requirements.txt"
+                '''
+            }
+        }
+
+        stage('SAST with Bandit') {
+            steps {
+                sh '''
+                # Install Bandit
+                bash -c "source venv/bin/activate && pip3 install bandit"
+                
+                # Run Bandit
+                bash -c "source venv/bin/activate && bandit app.py"
+                '''
+            }
+        }
+
+        stage('SCA with Safety') {
+            steps {
+                sh '''
+                # Install Safety
+                bash -c "source venv/bin/activate && pip3 install safety"
+
+                # Run Safety
+                bash -c "source venv/bin/activate && safety check -r requirements.txt"
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
