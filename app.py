@@ -1,14 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_wtf.csrf import CSRFProtect
 from models import User, db
 
 app = Flask(__name__)
-
-# Set a secret key for CSRF protection
-app.config['SECRET_KEY'] = '24300128ab'  # Make sure to use a strong, secure key
-
-# Enable CSRF protection
-csrf = CSRFProtect(app)
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Example with SQLite
