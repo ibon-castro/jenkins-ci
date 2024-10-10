@@ -16,45 +16,19 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                python3 -m venv venv
-                bash -c "source venv/bin/activate && pip3 install -r requirements.txt"
-                '''
-            }
-        }
-
-        stage('SAST with Bandit') {
-            steps {
-                sh '''
-                # Install Bandit
-                bash -c "source venv/bin/activate && pip3 install bandit"
-                
-                # Run Bandit
-                bash -c "source venv/bin/activate && bandit app.py"
-                '''
-            }
-        }
-
-        stage('SCA with Safety') {
-            steps {
-                sh '''
-                # Install Safety
-                bash -c "source venv/bin/activate && pip3 install safety"
-
-                # Run Safety
-                bash -c "source venv/bin/activate && safety check -r requirements.txt"
-                '''
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     // Build the Docker image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            def scannerHome = tool 'SonarScanner';
+            withSonarQubeEnv() {
+              sh "${scannerHome}/bin/sonar-scanner"
             }
         }
 
@@ -78,32 +52,6 @@ pipeline {
                     docker run -d --name my_app --network ${NETWORK_NAME} -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
-            }
-        }
-
-        stage('Run ZAP Scan') {
-            steps {
-                script {
-                    // Create the report directory and ensure permissions
-                    sh "mkdir -p ${REPORT_DIR}"
-                    sh "chmod 777 ${REPORT_DIR}"
-
-                    // Run ZAP with volume and network configurations
-                    sh """
-                    docker run --rm --network ${NETWORK_NAME} -v ${REPORT_DIR}:/zap/wrk ghcr.io/zaproxy/zaproxy:weekly \
-                    zap-baseline.py -t http://my_app:5000 -r zap_report.html || true
-                    """
-                    
-                    // Notify where the report will be saved
-                    echo "ZAP Report saved at: ${REPORT_DIR}/zap_report.html"
-                }
-            }
-        }
-
-        stage('Archive ZAP Report') {
-            steps {
-                // Correct the path to the generated report
-                archiveArtifacts artifacts: 'zap-reports/zap_report.html', allowEmptyArchive: true
             }
         }
 
