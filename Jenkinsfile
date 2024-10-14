@@ -63,16 +63,19 @@ pipeline {
         }
 
         stage('DefectDojo Integration') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'defectdojo_api', variable: 'DEFECTDOJO_API_KEY')]) {
-                        sh """
-                        defectdojo-api --url ${DEFECTDOJO_URL} --api-key ${DEFECTDOJO_API_KEY} --scan-type ${SCAN_TYPE} --product-id ${DEFECTDOJO_PRODUCT_ID} --engagement-id ${DEFECTDOJO_ENGAGEMENT_ID} --file-path sonarqube-results.xml
-                        """
-                    }
-                }
+    steps {
+        script {
+            withCredentials([string(credentialsId: 'defectdojo_api_key', variable: 'DEFECTDOJO_API_KEY')]) {
+                sh """
+                docker run --rm -v \$(pwd)/sonarqube-results.xml:/sonarqube-results.xml \
+                defectdojo/defectdojo-api \
+                defectdojo-api --url ${DEFECTDOJO_URL} --api-key \$DEFECTDOJO_API_KEY --scan-type ${SCAN_TYPE} --product-id ${DEFECTDOJO_PRODUCT_ID} --engagement-id ${DEFECTDOJO_ENGAGEMENT_ID} --file-path /sonarqube-results.xml
+                """
             }
         }
+    }
+}
+
 
         stage('Stop App') {
             steps {
