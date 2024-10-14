@@ -4,8 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
-        REPORT_DIR = '/var/lib/jenkins/workspace/pipeline/zap-reports'
-        NETWORK_NAME = 'zap-network'
+        NETWORK_NAME = 'network'
     }
 
     stages {
