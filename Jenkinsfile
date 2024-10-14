@@ -5,10 +5,6 @@ pipeline {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
         NETWORK_NAME = 'network'
-        DEFECTDOJO_URL = 'http://18.215.153.147:8080'
-        DEFECTDOJO_PRODUCT_ID = 'jenkins'
-        DEFECTDOJO_ENGAGEMENT_ID = 'sonarqube'
-        SCAN_TYPE = 'SonarQube Scan'
     }
 
     stages {
@@ -24,17 +20,6 @@ pipeline {
                 script {
                     // Build the Docker image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner'
-                    withSonarQubeEnv() {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
                 }
             }
         }
@@ -61,21 +46,6 @@ pipeline {
                 }
             }
         }
-
-        stage('DefectDojo Integration') {
-    steps {
-        script {
-            withCredentials([string(credentialsId: 'defectdojo_api_key', variable: 'DEFECTDOJO_API_KEY')]) {
-                sh """
-                docker run --rm -v \$(pwd)/sonarqube-results.xml:/sonarqube-results.xml \
-                defectdojo/defectdojo-api \
-                defectdojo-api --url ${DEFECTDOJO_URL} --api-key \$DEFECTDOJO_API_KEY --scan-type ${SCAN_TYPE} --product-id ${DEFECTDOJO_PRODUCT_ID} --engagement-id ${DEFECTDOJO_ENGAGEMENT_ID} --file-path /sonarqube-results.xml
-                """
-            }
-        }
-    }
-}
-
 
         stage('Stop App') {
             steps {
