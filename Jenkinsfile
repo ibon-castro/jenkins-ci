@@ -5,15 +5,26 @@ pipeline {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
         NETWORK_NAME = 'network'
+        REPO = 'https://github.com/ibon-castro/jenkins-ci.git'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 // Clone the repository using the 'github' credentials
-                git credentialsId: 'github', branch: 'master', url: 'https://github.com/ibon-castro/jenkins-ci.git'
+                git credentialsId: 'github', branch: 'master', url: ${REPO}
             }
         }
+
+        stage('TruffleHog Analysis') {
+            steps {
+                script {
+                    // Run TruffleHog to scan the repository for secrets
+                    sh 'docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo ${REPO}'
+                }
+            }
+        }
+
 
         stage('Build Docker Image') {
             steps {
