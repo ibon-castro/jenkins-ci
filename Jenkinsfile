@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     // Run TruffleHog to scan the repository for secrets
-                    sh 'docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo ${REPO}'
+                    sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo ${REPO}'
                 }
             }
         }
