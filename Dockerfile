@@ -4,6 +4,8 @@ FROM python:3.9
 # Set the working directory
 WORKDIR /app
 
+ENV API_KEY="12345-abcde-67890-fghij"
+
 # Copy the requirements file and install dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
