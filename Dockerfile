@@ -8,16 +8,6 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Introduce dummy secrets for testing
-# Hardcoded API key
-ENV API_KEY="12345-abcde-67890-fghij"
-
-# Hardcoded password (bad practice, used here only for testing purposes)
-RUN echo "DATABASE_PASSWORD='supersecretpassword'" > /app/credentials.txt
-
-# Another example of sensitive information
-RUN echo "AWS_SECRET_ACCESS_KEY='EXAMPLEAWSSECRETKEY'" >> /app/credentials.txt
-
 # Copy the rest of the app code
 COPY . /app
 
