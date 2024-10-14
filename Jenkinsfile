@@ -5,6 +5,10 @@ pipeline {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
         NETWORK_NAME = 'network'
+        DEFECTDOJO_URL = 'https://defectdojo.example.com'
+        DEFECTDOJO_PRODUCT_ID = 'jenkins'
+        DEFECTDOJO_ENGAGEMENT_ID = 'sonarqube'
+        SCAN_TYPE = 'SonarQube Scan'
     }
 
     stages {
@@ -54,6 +58,18 @@ pipeline {
                     docker network create ${NETWORK_NAME}
                     docker run -d --name my_app --network ${NETWORK_NAME} -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                     """
+                }
+            }
+        }
+
+        stage('DefectDojo Integration') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'defectdojo_api', variable: 'DEFECTDOJO_API_KEY')]) {
+                        sh """
+                        defectdojo-api --url ${DEFECTDOJO_URL} --api-key ${DEFECTDOJO_API_KEY} --scan-type ${SCAN_TYPE} --product-id ${DEFECTDOJO_PRODUCT_ID} --engagement-id ${DEFECTDOJO_ENGAGEMENT_ID} --file-path sonarqube-results.xml
+                        """
+                    }
                 }
             }
         }
