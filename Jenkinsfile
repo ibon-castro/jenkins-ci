@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'iboncas/app'
         IMAGE_TAG = 'latest'
         NETWORK_NAME = 'network'
-        DEFECTDOJO_URL = 'https://defectdojo.example.com'
+        DEFECTDOJO_URL = 'http://18.215.153.147:8080'
         DEFECTDOJO_PRODUCT_ID = 'jenkins'
         DEFECTDOJO_ENGAGEMENT_ID = 'sonarqube'
         SCAN_TYPE = 'SonarQube Scan'
