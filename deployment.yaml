@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,6 +20,10 @@ spec:
         image: iboncas/app:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: production
+
 ---
 apiVersion: v1
 kind: Service
@@ -33,3 +38,38 @@ spec:
     port: 80
     targetPort: 5000
 
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-traffic
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress: []
+  egress: []
+  
+---
+#apiVersion: networking.k8s.io/v1
+#kind: NetworkPolicy
+#metadata:
+#  name: allow-from-specific-ip
+#  namespace: default  # Replace with your namespace if different
+#spec:
+#  podSelector:
+#    matchLabels:
+#      app: app  # Ensure this label matches your Deployment
+#  policyTypes:
+#  - Ingress
+#  ingress:
+#  - from:
+#    - ipBlock:
+#        cidr: YOUR_IP_ADDRESS/32
+#    ports:
+#    - protocol: TCP
+#      port: 5000  # The port your Flask app listens on
