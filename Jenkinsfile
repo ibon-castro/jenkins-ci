@@ -39,11 +39,7 @@ pipeline {
         stage('Deploy on K8S') {
             steps {
                 withCredentials([string(credentialsId: 'my_kubernetes', variable: 'api_token')]) {
-                    sh '''
-                    kubectl delete deployment app-deployment --ignore-not-found
-                    kubectl delete service app-service --ignore-not-found
-                    kubectl --token $api_token --server https://192.168.49.2:8443 --insecure-skip-tls-verify=true apply -f deployment.yaml
-                    '''
+                    sh 'kubectl --token $api_token --server https://192.168.49.2:8443 --insecure-skip-tls-verify=true apply -f deployment.yaml'
                 }
             }
         }
