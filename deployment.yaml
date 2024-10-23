@@ -36,20 +36,20 @@ spec:
     targetPort: 5000
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: deny-all-traffic
-  namespace: default
-spec:
-  podSelector:
-    matchLabels:
-      app: app
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress: []
-  egress: []
+#apiVersion: networking.k8s.io/v1
+#kind: NetworkPolicy
+#metadata:
+#  name: deny-all-traffic
+#  namespace: default
+#spec:
+#  podSelector:
+#    matchLabels:
+#      app: app
+#  policyTypes:
+#  - Ingress
+#  - Egress
+#  ingress: []
+#  egress: []
   
 ---
 #apiVersion: networking.k8s.io/v1
