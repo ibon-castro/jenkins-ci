@@ -36,26 +36,10 @@ spec:
     targetPort: 5000
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: deny-all-traffic
-  namespace: default
-spec:
-  podSelector:
-    matchLabels:
-      app: app
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress: []
-  egress: []
-  
----
 #apiVersion: networking.k8s.io/v1
 #kind: NetworkPolicy
 #metadata:
-#  name: allow-from-specific-ip
+#  name: deny-all-traffic
 #  namespace: default
 #spec:
 #  podSelector:
@@ -63,10 +47,26 @@ spec:
 #      app: app
 #  policyTypes:
 #  - Ingress
-#  ingress:
-#  - from:
-#    - ipBlock:
-#        cidr: 85.84.136.236/32
-#    ports:
-#    - protocol: TCP
-#      port: 5000  # The port your Flask app listens on
+#  - Egress
+#  ingress: []
+#  egress: []
+  
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-specific-ip
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: app
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 85.84.136.236/32
+    ports:
+    - protocol: TCP
+      port: 5000  # The port your Flask app listens on
