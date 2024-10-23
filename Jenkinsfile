@@ -36,27 +36,14 @@ pipeline {
             }
         }
 
-        stage('Deploy Locally') {
+        stage('Deploy on K8S') {
             steps {
-                script {
-                    // Create a Docker network and deploy the app on that network
-                    sh """
-                    docker network create ${NETWORK_NAME}
-                    docker run -d --name my_app --network ${NETWORK_NAME} -p 5000:5000 ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
-                }
-            }
-        }
-
-        stage('Stop App') {
-            steps {
-                script {
-                    // Stop and clean up the app container and network
-                    sh """
-                    docker stop my_app
-                    docker rm my_app
-                    docker network rm ${NETWORK_NAME}
-                    """
+                withCredentials([string(credentialsId: 'my_kubernetes', variable: 'api_token')]) {
+                    sh '''
+                    kubectl delete deployment app-deployment --ignore-not-found
+                    kubectl delete service app-service --ignore-not-found
+                    kubectl --token $api_token --server https://192.168.49.2:8443 --insecure-skip-tls-verify=true apply -f deployment.yaml
+                    '''
                 }
             }
         }
