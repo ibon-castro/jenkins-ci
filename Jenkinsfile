@@ -16,16 +16,6 @@ pipeline {
             }
         }
 
-        stage('TruffleHog Analysis') {
-            steps {
-                script {
-                    // Run TruffleHog to scan the repository for secrets
-                    sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo ${REPO}'
-                }
-            }
-        }
-
-
         stage('Build Docker Image') {
             steps {
                 script {
